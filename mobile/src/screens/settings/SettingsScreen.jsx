@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile, logout, selectUser, selectAuthLoading } from '../../store/slices/authSlice';
+import { setThemeMode, selectThemeMode } from '../../store/slices/themeSlice';
 import useThemeColors from '../../hooks/useThemeColors';
 import LoadingButton from '../../components/LoadingButton';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +12,7 @@ export default function SettingsScreen({ navigation }) {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const loading = useSelector(selectAuthLoading);
+  const themeMode = useSelector(selectThemeMode);
 
   const [name, setName] = useState(user?.name || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
@@ -45,7 +47,28 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[styles.emailText, { color: colors.textSecondary }]}>{user?.email}</Text>
         </View>
 
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Display Name</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Appearance</Text>
+        <View style={[styles.segmentWrap, { backgroundColor: colors.inputBg }]}>
+          {['system', 'light', 'dark'].map((mode) => (
+            <TouchableOpacity
+              key={mode}
+              style={[
+                styles.segmentBtn,
+                themeMode === mode && { backgroundColor: colors.card, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }
+              ]}
+              onPress={() => dispatch(setThemeMode(mode))}
+            >
+              <Text style={[
+                styles.segmentText,
+                { color: themeMode === mode ? colors.text : colors.textSecondary }
+              ]}>
+                {mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={[styles.label, { color: colors.textSecondary, marginTop: 24 }]}>Display Name</Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
           placeholder="e.g. Jane Doe"
@@ -90,6 +113,9 @@ const styles = StyleSheet.create({
   emailText: { fontSize: 14, fontWeight: '500' },
   label: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 16 },
   input: { borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15 },
+  segmentWrap: { flexDirection: 'row', borderRadius: 12, padding: 4 },
+  segmentBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
+  segmentText: { fontSize: 14, fontWeight: '600' },
   saveBtn: { marginTop: 32 },
   logoutBtn: { marginTop: 24, paddingVertical: 14, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   logoutText: { fontSize: 16, fontWeight: '600' },

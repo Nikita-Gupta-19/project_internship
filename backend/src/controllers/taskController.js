@@ -16,19 +16,20 @@ const createError = (status, message) => {
  */
 async function assertProjectOwnership(projectId, userId, next) {
   try {
-    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+    const result = await pool.query(
+      `SELECT p.* 
+       FROM projects p
+       LEFT JOIN project_members pm ON p.id = pm.project_id
+       WHERE p.id = $1 AND (p.user_id = $2 OR pm.user_id = $2)`,
+      [projectId, userId]
+    );
+    
     if (result.rows.length === 0) {
-      next(createError(404, 'Project not found'));
+      next(createError(404, 'Project not found or forbidden'));
       return null;
     }
 
-    const project = result.rows[0];
-    if (project.user_id !== userId) {
-      next(createError(403, 'Forbidden'));
-      return null;
-    }
-
-    return project;
+    return result.rows[0];
   } catch (error) {
     next(error);
     return null;

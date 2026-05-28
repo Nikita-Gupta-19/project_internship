@@ -34,7 +34,11 @@ export const getProjects = async (req, res, next) => {
     const userId = req.user.userId;
 
     const result = await pool.query(
-      'SELECT * FROM projects WHERE user_id = $1 ORDER BY created_at DESC',
+      `SELECT DISTINCT p.* 
+       FROM projects p
+       LEFT JOIN project_members pm ON p.id = pm.project_id
+       WHERE p.user_id = $1 OR pm.user_id = $1
+       ORDER BY p.created_at DESC`,
       [userId]
     );
 
@@ -56,23 +60,22 @@ export const getProject = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.userId;
 
-    const result = await pool.query('SELECT * FROM projects WHERE id = $1', [id]);
+    const result = await pool.query(
+      `SELECT p.* 
+       FROM projects p
+       LEFT JOIN project_members pm ON p.id = pm.project_id
+       WHERE p.id = $1 AND (p.user_id = $2 OR pm.user_id = $2)`, 
+      [id, userId]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Project not found',
+        message: 'Project not found or forbidden',
       });
     }
 
     const project = result.rows[0];
-
-    if (project.user_id !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Forbidden',
-      });
-    }
 
     return res.status(200).json({
       success: true,
@@ -158,3 +161,36 @@ export const updateProject = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Invite a user to a project via email
+ * @route   POST /api/projects/:id/members
+ */
+export const addMember = async (req, res, next) => {
+  try {
+    const { id: projectId } = req.params;
+    const userId = req.user.userId;
+    const { email } = req.body;
+
+    // Check ownership
+    const project = await pool.query('SELECT * FROM projects WHERE id = $1 AND user_id = $2', [projectId, userId]);
+    if (project.rows.length === 0) {
+      return res.status(403).json({ success: false, message: 'Forbidden or not found' });
+    }
+
+    // Find user by email
+    const member = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (member.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'No account found with this email' });
+    }
+
+    // Add member
+    await pool.query(
+      'INSERT INTO project_members (project_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [projectId, member.rows[0].id]
+    );
+
+    return res.status(200).json({ success: true, message: 'User invited successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};

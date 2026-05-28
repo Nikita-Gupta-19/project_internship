@@ -5,6 +5,7 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -22,6 +23,8 @@ import EmptyState from '../../components/EmptyState';
 import SkeletonTaskItem from '../../components/SkeletonTaskItem';
 import CreateTaskModal from '../modals/CreateTaskModal';
 import EditTaskModal from '../modals/EditTaskModal';
+import InviteMemberModal from '../modals/InviteMemberModal';
+import { inviteMember } from '../../store/slices/projectsSlice';
 
 const FILTERS = ['all', 'pending', 'complete'];
 
@@ -35,6 +38,7 @@ export default function ProjectDetailScreen({ route }) {
 
   // Local UI state
   const [createVisible, setCreateVisible] = useState(false);
+  const [inviteVisible, setInviteVisible] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // task object
   const [filter, setFilter] = useState('all');
 
@@ -69,6 +73,26 @@ export default function ProjectDetailScreen({ route }) {
       throw new Error(result.payload);
     }
   };
+
+  const handleInviteUser = async (email) => {
+    const result = await dispatch(inviteMember({ projectId, email }));
+    if (inviteMember.fulfilled.match(result)) {
+      setInviteVisible(false);
+      Alert.alert('Success', `Invited ${email} to the project!`);
+    } else {
+      throw new Error(result.payload);
+    }
+  };
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={() => setInviteVisible(true)} style={{ marginRight: 16 }}>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Invite</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, colors]);
 
   // Client-side filter
   const filtered = tasks.filter((t) =>
@@ -163,6 +187,12 @@ export default function ProjectDetailScreen({ route }) {
         initialDueDate={editTarget?.due_date ?? ''}
         initialPriority={editTarget?.priority ?? 'medium'}
         initialCategory={editTarget?.category ?? ''}
+      />
+
+      <InviteMemberModal
+        visible={inviteVisible}
+        onClose={() => setInviteVisible(false)}
+        onSubmit={handleInviteUser}
       />
     </View>
   );

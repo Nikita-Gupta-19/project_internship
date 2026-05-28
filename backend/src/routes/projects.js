@@ -8,6 +8,7 @@ import {
   getProject,
   deleteProject,
   updateProject,
+  addMember,
 } from '../controllers/projectController.js';
 
 const router = Router();
@@ -53,5 +54,16 @@ router.patch(
  * DELETE /api/projects/:id
  */
 router.delete('/:id', deleteProject);
+
+/**
+ * POST /api/projects/:id/members
+ */
+router.post(
+  '/:id/members',
+  validate([
+    body('email').isEmail().withMessage('Must be a valid email address').normalizeEmail(),
+  ]),
+  addMember
+);
 
 export default router;

@@ -51,6 +51,18 @@ export const editProject = createAsyncThunk(
   }
 );
 
+export const inviteMember = createAsyncThunk(
+  'projects/inviteMember',
+  async ({ projectId, email }, { rejectWithValue }) => {
+    try {
+      const res = await client.post(`/projects/${projectId}/members`, { email });
+      return res.data;
+    } catch (e) {
+      return rejectWithValue(e?.response?.data?.message || 'Failed to invite user.');
+    }
+  }
+);
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const initialState = {

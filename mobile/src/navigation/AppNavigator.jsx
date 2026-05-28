@@ -16,7 +16,9 @@ const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   const scheme = useColorScheme();
-  const colors = scheme === 'dark' ? dark : light;
+  const themeMode = useSelector((state) => state.theme.mode);
+  const effectiveTheme = themeMode === 'system' ? scheme : themeMode;
+  const colors = effectiveTheme === 'dark' ? dark : light;
 
   const dispatch = useDispatch();
   const token = useSelector(selectToken);
