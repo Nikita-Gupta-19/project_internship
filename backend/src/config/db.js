@@ -1,15 +1,17 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
 
-// Load environment variables (needed if run outside server.js contexts like scripts)
 dotenv.config();
 
 const { Pool } = pg;
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // Add some sensible defaults for production-readiness
-  max: 20, // max number of clients in the pool
+  // Railway's Postgres requires SSL in production
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
+  max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });

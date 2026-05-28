@@ -10,8 +10,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable Cross-Origin Resource Sharing
-app.use(cors());
+const isProduction = process.env.NODE_ENV === 'production';
+
+// In production, only allow the origins you control.
+// Add your Expo Go URL or custom domain to ALLOWED_ORIGINS env var
+// (comma-separated). During development every origin is allowed.
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [];
+
+app.use(
+  cors({
+    origin: isProduction
+      ? (origin, callback) => {
+          // Allow requests with no origin (curl, mobile apps, Postman)
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        }
+      : true, // allow all in development
+    credentials: true,
+  })
+);
+
 
 // Enable parsing of JSON request bodies
 app.use(express.json());
