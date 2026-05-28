@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
+import { sendOtpEmail } from '../utils/email.js';
 
 /**
  * @desc    Generate and save a 6-digit OTP for the user, logging it to the console in development
@@ -27,8 +28,8 @@ export const sendOtp = async (req, res, next) => {
 
     await pool.query(query, [userId, email, otp, otpExpiresAt]);
 
-    // Console.log the OTP with a clear label (dev environment only)
-    console.log(`[DEV OTP] ${email} → ${otp}`);
+    // Send the real email
+    await sendOtpEmail(email, otp);
 
     return res.status(200).json({
       success: true,
