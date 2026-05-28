@@ -59,8 +59,8 @@ router.patch(
   '/profile',
   authMiddleware,
   validate([
-    body('name').optional().isString().trim().isLength({ max: 255 }),
-    body('avatar_url').optional().isURL().withMessage('Must be a valid URL'),
+    body('name').optional({ checkFalsy: true }).isString().trim().isLength({ max: 255 }),
+    body('avatar_url').optional({ checkFalsy: true }).isURL().withMessage('Must be a valid URL'),
   ]),
   updateProfile
 );
