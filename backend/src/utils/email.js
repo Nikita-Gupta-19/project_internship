@@ -1,23 +1,17 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Send an email using Gmail SMTP
+ * Send an email using Resend API
  * @param {string} to - Recipient email address
  * @param {string} otp - The 6-digit OTP code
  */
 export const sendOtpEmail = async (to, otp) => {
   try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    const mailOptions = {
-      from: `"Project & Task Manager" <${process.env.EMAIL_USER}>`,
-      to,
+    const data = await resend.emails.send({
+      from: 'Project & Task Manager <onboarding@resend.dev>',
+      to: [to],
       subject: 'Your Login Code',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
@@ -29,13 +23,12 @@ export const sendOtpEmail = async (to, otp) => {
           <p style="font-size: 14px; color: #666; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
         </div>
       `,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Email Sent] ${to} (Message ID: ${info.messageId})`);
+    console.log(`[Email Sent via Resend] ${to} (ID: ${data.id})`);
     return true;
   } catch (error) {
-    console.error('[Email Error] Failed to send OTP:', error);
+    console.error('[Resend Error] Failed to send OTP:', error);
     throw error;
   }
 };
