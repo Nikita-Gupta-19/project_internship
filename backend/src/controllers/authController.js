@@ -103,6 +103,8 @@ export const verifyOtp = async (req, res, next) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
+        avatar_url: user.avatar_url
       },
     });
   } catch (error) {
@@ -119,6 +121,38 @@ export const logout = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Logged out',
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * @desc    Update user profile (name, avatar_url)
+ * @route   PATCH /api/auth/profile
+ */
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.userId;
+    const { name, avatar_url } = req.body;
+
+    const query = `
+      UPDATE users 
+      SET name = COALESCE($1, name), 
+          avatar_url = COALESCE($2, avatar_url)
+      WHERE id = $3
+      RETURNING id, email, name, avatar_url
+    `;
+    
+    const result = await pool.query(query, [name, avatar_url, userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: result.rows[0],
     });
   } catch (error) {
     return next(error);

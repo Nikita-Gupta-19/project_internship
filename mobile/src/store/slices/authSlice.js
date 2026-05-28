@@ -49,6 +49,19 @@ export const verifyOtp = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async ({ name, avatar_url }, { rejectWithValue }) => {
+    try {
+      const res = await client.patch('/auth/profile', { name, avatar_url });
+      return res.data.user;
+    } catch (e) {
+      const msg = e?.response?.data?.message || 'Failed to update profile.';
+      return rejectWithValue(msg);
+    }
+  }
+);
+
 export const logout = createAsyncThunk('auth/logout', async () => {
   await AsyncStorage.removeItem('token');
 });
@@ -107,6 +120,22 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(verifyOtp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+
+    // updateProfile
+    builder
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = { ...state.user, ...action.payload };
+        state.error = null;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { validate } from '../middleware/validate.js';
 import authMiddleware from '../middleware/authMiddleware.js';
-import { sendOtp, verifyOtp, logout } from '../controllers/authController.js';
+import { sendOtp, verifyOtp, logout, updateProfile } from '../controllers/authController.js';
 
 const router = Router();
 
@@ -49,5 +49,20 @@ router.post(
  * @access  Private (Protected)
  */
 router.post('/logout', authMiddleware, logout);
+
+/**
+ * @route   PATCH /api/auth/profile
+ * @desc    Update profile fields (name, avatar_url)
+ * @access  Private (Protected)
+ */
+router.patch(
+  '/profile',
+  authMiddleware,
+  validate([
+    body('name').optional().isString().trim().isLength({ max: 255 }),
+    body('avatar_url').optional().isURL().withMessage('Must be a valid URL'),
+  ]),
+  updateProfile
+);
 
 export default router;

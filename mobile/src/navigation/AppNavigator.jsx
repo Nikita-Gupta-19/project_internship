@@ -10,6 +10,7 @@ import SendOtpScreen from '../screens/auth/SendOtpScreen';
 import VerifyOtpScreen from '../screens/auth/VerifyOtpScreen';
 import ProjectListScreen from '../screens/projects/ProjectListScreen';
 import ProjectDetailScreen from '../screens/projects/ProjectDetailScreen';
+import SettingsScreen from '../screens/settings/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -69,6 +70,11 @@ export default function AppNavigator() {
             name="ProjectDetail"
             component={ProjectDetailScreen}
             options={({ route }) => ({ title: route.params?.title || 'Tasks' })}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: 'Profile & Settings' }}
           />
         </>
       )}

@@ -20,7 +20,7 @@ import {
   selectProjectsLoading,
   selectProjectsError,
 } from '../../store/slices/projectsSlice';
-import { logout } from '../../store/slices/authSlice';
+
 import useThemeColors from '../../hooks/useThemeColors';
 import ProjectCard from '../../components/ProjectCard';
 import EmptyState from '../../components/EmptyState';
@@ -82,15 +82,11 @@ export default function ProjectListScreen({ navigation }) {
     }
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
-  };
-
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity onPress={handleLogout} style={{ marginRight: 16 }}>
-          <Text style={{ color: colors.danger, fontWeight: '600', fontSize: 15 }}>Logout</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={{ marginRight: 16 }}>
+          <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 15 }}>Settings</Text>
         </TouchableOpacity>
       ),
     });
