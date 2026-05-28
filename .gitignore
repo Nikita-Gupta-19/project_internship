@@ -1,0 +1,15 @@
+# Backend
+backend/node_modules
+backend/.env
+
+# Mobile
+mobile/node_modules
+mobile/.env
+mobile/.expo
+mobile/dist
+mobile/android
+mobile/ios
+
+# General
+.DS_Store
+*.log
