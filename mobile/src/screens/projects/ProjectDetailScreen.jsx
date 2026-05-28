@@ -28,7 +28,7 @@ import { inviteMember } from '../../store/slices/projectsSlice';
 
 const FILTERS = ['all', 'pending', 'complete'];
 
-export default function ProjectDetailScreen({ route }) {
+export default function ProjectDetailScreen({ route, navigation }) {
   const colors = useThemeColors();
   const dispatch = useDispatch();
   const { projectId } = route.params;
