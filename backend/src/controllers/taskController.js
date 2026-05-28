@@ -43,7 +43,7 @@ export const createTask = async (req, res, next) => {
   try {
     const { projectId } = req.params;
     const userId = req.user.userId;
-    const { title, due_date } = req.body;
+    const { title, due_date, priority, category } = req.body;
 
     const project = await assertProjectOwnership(projectId, userId, next);
     if (!project) return;
@@ -51,8 +51,8 @@ export const createTask = async (req, res, next) => {
     const taskId = uuidv4();
 
     const result = await pool.query(
-      "INSERT INTO tasks (id, project_id, title, status, due_date) VALUES ($1, $2, $3, 'pending', $4) RETURNING *",
-      [taskId, projectId, title, due_date || null]
+      "INSERT INTO tasks (id, project_id, title, status, due_date, priority, category) VALUES ($1, $2, $3, 'pending', $4, $5, $6) RETURNING *",
+      [taskId, projectId, title, due_date || null, priority || 'medium', category || null]
     );
 
     return res.status(201).json({
@@ -98,7 +98,7 @@ export const updateTask = async (req, res, next) => {
   try {
     const { projectId, id: taskId } = req.params;
     const userId = req.user.userId;
-    const { title, status, due_date } = req.body;
+    const { title, status, due_date, priority, category } = req.body;
 
     const project = await assertProjectOwnership(projectId, userId, next);
     if (!project) return;
@@ -132,6 +132,14 @@ export const updateTask = async (req, res, next) => {
     if (due_date !== undefined) {
       fields.push(`due_date = $${idx++}`);
       values.push(due_date);
+    }
+    if (priority !== undefined) {
+      fields.push(`priority = $${idx++}`);
+      values.push(priority);
+    }
+    if (category !== undefined) {
+      fields.push(`category = $${idx++}`);
+      values.push(category);
     }
 
     if (fields.length === 0) {
