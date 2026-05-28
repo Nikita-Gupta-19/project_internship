@@ -165,8 +165,9 @@ const tasksSlice = createSlice({
 export const { flipTaskOptimistic, removeTaskOptimistic, updateTaskInPlace } = tasksSlice.actions;
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
+const EMPTY_ARRAY = [];
 export const selectTasksByProject = (projectId) => (state) =>
-  state.tasks.itemsByProjectId[projectId] ?? [];
+  state.tasks.itemsByProjectId[projectId] ?? EMPTY_ARRAY;
 export const selectTasksLoading = (state) => state.tasks.loading;
 export const selectTasksError = (state) => state.tasks.error;
 
