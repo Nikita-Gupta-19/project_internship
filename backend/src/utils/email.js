@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 /**
  * Send an email using Resend API
@@ -8,6 +8,13 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {string} otp - The 6-digit OTP code
  */
 export const sendOtpEmail = async (to, otp) => {
+  if (!resend) {
+    console.log('\n----------------------------------------');
+    console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
+    console.log('----------------------------------------\n');
+    return true;
+  }
+
   try {
     const data = await resend.emails.send({
       from: 'Project & Task Manager <onboarding@resend.dev>',
