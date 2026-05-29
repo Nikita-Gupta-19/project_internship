@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import pool from '../config/db.js';
+import { sendInviteEmail } from '../utils/email.js';
 
 /**
  * @desc    Create a new project
@@ -188,6 +189,9 @@ export const addMember = async (req, res, next) => {
       'INSERT INTO project_members (project_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [projectId, member.rows[0].id]
     );
+
+    // Send email notification (in the background, don't await so we don't block the response)
+    sendInviteEmail(member.rows[0].email, project.rows[0].title).catch(console.error);
 
     return res.status(200).json({ success: true, message: 'User invited successfully' });
   } catch (error) {
