@@ -1,14 +1,17 @@
-import { Resend } from 'resend';
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+import axios from 'axios';
 
 /**
- * Send an email using Resend API
+ * Send an email using EmailJS REST API
  * @param {string} to - Recipient email address
  * @param {string} otp - The 6-digit OTP code
  */
 export const sendOtpEmail = async (to, otp) => {
-  if (!resend) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+  if (!serviceId || !templateId || !publicKey) {
     console.log('\n----------------------------------------');
     console.log(`[DEV MODE] OTP for ${to}: ${otp}`);
     console.log('----------------------------------------\n');
@@ -16,26 +19,28 @@ export const sendOtpEmail = async (to, otp) => {
   }
 
   try {
-    const data = await resend.emails.send({
-      from: 'Project & Task Manager <onboarding@resend.dev>',
-      to: [to],
-      subject: 'Your Login Code',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-          <h2 style="color: #4F46E5; text-align: center;">Welcome back!</h2>
-          <p style="font-size: 16px; color: #333;">Here is your 6-digit login code. It will expire in 10 minutes.</p>
-          <div style="background-color: #F3F4F6; padding: 15px; border-radius: 8px; text-align: center; margin: 25px 0;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #111827;">${otp}</span>
-          </div>
-          <p style="font-size: 14px; color: #666; text-align: center;">If you didn't request this code, you can safely ignore this email.</p>
-        </div>
-      `,
+    const payload = {
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      accessToken: privateKey, // Required for backend calls
+      template_params: {
+        email: to, // Maps to {{email}} in your template
+        otp: otp,  // Maps to {{otp}} in your template
+      }
+    };
+
+    const response = await axios.post('https://api.emailjs.com/api/v1.0/email/send', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
-    console.log(`[Email Sent via Resend] ${to} (ID: ${data.id})`);
+    console.log(`[Email Sent via EmailJS] ${to} - Status: ${response.status}`);
     return true;
   } catch (error) {
-    console.error('[Resend Error] Failed to send OTP:', error);
-    throw error;
+    const errMsg = error?.response?.data || error.message;
+    console.error('[EmailJS Error] Failed to send OTP:', errMsg);
+    throw new Error('Failed to send OTP email');
   }
 };
