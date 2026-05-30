@@ -41,6 +41,12 @@ export const sendOtpEmail = async (to, otp) => {
   } catch (error) {
     const errMsg = error?.response?.data || error.message;
     console.error('[EmailJS Error] Failed to send OTP:', errMsg);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('\n--------------------------------------------------');
+      console.log(`[DEV MODE FALLBACK] OTP for ${to}: ${otp}`);
+      console.log('--------------------------------------------------\n');
+      return true;
+    }
     throw new Error('Failed to send OTP email');
   }
 };
